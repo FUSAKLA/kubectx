@@ -31,6 +31,7 @@ else
 fi
 
 KUBECTX="${HOME}/.kube/kubectx"
+KUBECTX_HOOKS="${HOME}/.kube/kubectx_hooks"
 
 usage() {
   cat <<"EOF"
@@ -86,6 +87,11 @@ set_context() {
   if [[ "${prev}" != "${1}" ]]; then
     save_context "${prev}"
   fi
+
+  if [ -x "${KUBECTX_HOOKS}/${1}" ]; then
+    bash "${KUBECTX_HOOKS}/${1}"
+  fi
+
 }
 
 swap_context() {
@@ -120,6 +126,9 @@ rename_context() {
   fi
 
   kubectl config rename-context "${old_name}" "${new_name}"
+  if [ -x "${KUBECTX_HOOKS}/${old_name}" ]; then
+    mv "${KUBECTX_HOOKS}/${old_name}" "${KUBECTX_HOOKS}/${new_name}"
+  fi
 }
 
 main() {
